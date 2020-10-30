@@ -48,7 +48,7 @@ static const GLfloat cube[][3] = {
     {1.0f,-1.0f, 1.0f}
 };
 
-const char * const vertex_shader_source =
+const char * const scene_vertex_shader_source =
     "#version 130\n"
     "\n"
     "in vec3 position;\n"
@@ -63,7 +63,7 @@ const char * const vertex_shader_source =
     "void main() {\n"
     "    gl_Position = vec4(position.xyz * 0.5f * rotation, 1.0f);\n"
     "}\n";
-const char * const fragment_shader_source =
+const char * const scene_fragment_shader_source =
     "#version 130\n"
     "\n"
     "void main() {\n"
@@ -71,6 +71,29 @@ const char * const fragment_shader_source =
     "                        float(0xc9) / 255.0f,\n"
     "                        float(0x36) / 255.0f,\n"
     "                        float(0xff) / 255.0f);\n"
+    "}\n";
+
+const char * const pp_vertex_shader_source =
+    "#version 130\n"
+    "out vec2 texcoord;"
+    "void main(void)\n"
+    "{\n"
+    "    int gray = gl_VertexID ^ (gl_VertexID >> 1);\n"
+    "    gl_Position = vec4(\n"
+    "        2 * (gray / 2) - 1,\n"
+    "        2 * (gray % 2) - 1,\n"
+    "        0.0,\n"
+    "        1.0);\n"
+    "    texcoord = vec2(gray / 2, 1 - gray % 2);\n"
+    "}\n";
+const char * const pp_fragment_shader_source =
+    "#version 130\n"
+    "in vec2 texcoord;\n"
+    "uniform sampler2D frame;\n"
+    "out vec4 color;\n"
+    "void main(void) {\n"
+    "    color = texture(frame, texcoord);\n"
+    "    //color = vec4(0.5, 0.5, 0.5, 1.0);\n"
     "}\n";
 
 const char *shader_type_as_cstr(GLenum shader_type)
@@ -136,6 +159,8 @@ GLuint link_program(GLuint vertex_shader, GLuint fragment_shader)
     return program;
 }
 
+
+
 int main(int argc, char *argv[])
 {
     if (!glfwInit()) {
@@ -154,11 +179,14 @@ int main(int argc, char *argv[])
 
     glfwMakeContextCurrent(window);
 
-    GLuint vertex_shader = compile_shader(vertex_shader_source, GL_VERTEX_SHADER);
-    GLuint fragment_shader = compile_shader(fragment_shader_source, GL_FRAGMENT_SHADER);
-    GLuint program = link_program(vertex_shader, fragment_shader);
+    GLuint scene_vertex_shader = compile_shader(scene_vertex_shader_source, GL_VERTEX_SHADER);
+    GLuint scene_fragment_shader = compile_shader(scene_fragment_shader_source, GL_FRAGMENT_SHADER);
+    GLuint scene_program = link_program(scene_vertex_shader, scene_fragment_shader);
 
-    glUseProgram(program);
+    GLuint pp_vertex_shader = compile_shader(pp_vertex_shader_source, GL_VERTEX_SHADER);
+    GLuint pp_fragment_shader = compile_shader(pp_fragment_shader_source, GL_FRAGMENT_SHADER);
+    GLuint pp_program = link_program(pp_vertex_shader, pp_fragment_shader);
+
 
     GLuint vertex_buffer;
     glGenBuffers(1, &vertex_buffer);
@@ -174,20 +202,53 @@ int main(int argc, char *argv[])
                           0,
                           NULL);
 
+    // FRAMEBUFFER SECTION BEGIN //////////////////////////////
+
+    GLuint pp_framebuffer = 0;
+    glGenFramebuffers(1, &pp_framebuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, pp_framebuffer);
+
+    GLuint pp_texture = 0;
+    glGenTextures(1, &pp_texture);
+    glBindTexture(GL_TEXTURE_2D, pp_texture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, pp_texture, 0);
+    // glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, pp_texture, 0);
+    GLenum draw_buffers = GL_COLOR_ATTACHMENT0;
+    glDrawBuffers(1, &draw_buffers);
+
+    GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    if(status != GL_FRAMEBUFFER_COMPLETE) {
+        fprintf(stderr, "Mr. Buffer does not feel okay Sadge: %d\n", status);
+        exit(1);
+    }
+
+    // FRAMEBUFFER SECTION END //////////////////////////////
+
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-
-    GLint angle_location = glGetUniformLocation(program, "angle");
+    GLint angle_location = glGetUniformLocation(scene_program, "angle");
     float angle = 0.0f;
 
     while (!glfwWindowShouldClose(window)) {
+        // First pass
+        glBindFramebuffer(GL_FRAMEBUFFER, pp_framebuffer);
+        glUseProgram(scene_program);
         glClear(GL_COLOR_BUFFER_BIT);
-
         angle = fmodf(angle + 0.01f, 2.0f * M_PI);
         glUniform1f(angle_location, angle);
-
         glDrawArrays(GL_TRIANGLES, position_index, sizeof(cube) / sizeof(cube[0]));
+
+        // Second pass
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glUseProgram(pp_program);
+        glClear(GL_COLOR_BUFFER_BIT);
+        glDrawArrays(GL_QUADS, 0, 4);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
