@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 #define GL_GLEXT_PROTOTYPES
 #include <GLFW/glfw3.h>
@@ -50,10 +51,17 @@ static const GLfloat cube[][3] = {
 const char * const vertex_shader_source =
     "#version 130\n"
     "\n"
-    "in vec2 position;\n"
+    "in vec3 position;\n"
+    "uniform float angle;\n"
+    "\n"
+    "mat3 rotation = mat3(\n"
+    "  vec2(cos(angle),  0.0f), sin(angle),\n"
+    "  vec2(0.0f,        1.0f), 0.0f,\n"
+    "  vec2(-sin(angle), 0.0f), cos(angle)\n"
+    ");\n"
     "\n"
     "void main() {\n"
-    "    gl_Position = vec4(position.xy * 0.5f, 0.0f, 1.0f);\n"
+    "    gl_Position = vec4(position.xyz * 0.5f * rotation, 1.0f);\n"
     "}\n";
 const char * const fragment_shader_source =
     "#version 130\n"
@@ -167,8 +175,17 @@ int main(int argc, char *argv[])
                           NULL);
 
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+
+    GLint angle_location = glGetUniformLocation(program, "angle");
+    float angle = 0.0f;
+
     while (!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT);
+
+        angle = fmodf(angle + 0.01f, 2.0f * M_PI);
+        glUniform1f(angle_location, angle);
 
         glDrawArrays(GL_TRIANGLES, position_index, sizeof(cube) / sizeof(cube[0]));
 
