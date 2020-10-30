@@ -6,7 +6,7 @@
 #include <GLFW/glfw3.h>
 
 #define SCREEN_WIDTH 800
-#define SCREEN_HEIGHT 800
+#define SCREEN_HEIGHT 600
 
 // Stolen from http://www.opengl-tutorial.org/beginners-tutorials/tutorial-4-a-colored-cube/#draw-a-cube
 static const GLfloat cube[][3] = {
@@ -90,9 +90,40 @@ const char * const pp_fragment_shader_source =
     "#version 130\n"
     "in vec2 texcoord;\n"
     "uniform sampler2D frame;\n"
+    "vec2 direction = vec2(3.0, 3.0);\n"
+    "vec2 iResolution = vec2(800, 600);\n"
     "out vec4 color;\n"
+    "\n"
+    "vec4 blur13(sampler2D image, vec2 uv, vec2 resolution, vec2 direction) {\n"
+    "  vec4 color = vec4(0.0);\n"
+    "  vec2 off1 = vec2(1.411764705882353) * direction;\n"
+    "  vec2 off2 = vec2(3.2941176470588234) * direction;\n"
+    "  vec2 off3 = vec2(5.176470588235294) * direction;\n"
+    "  color += texture2D(image, uv) * 0.1964825501511404;\n"
+    "  color += texture2D(image, uv + (off1 / resolution)) * 0.2969069646728344;\n"
+    "  color += texture2D(image, uv - (off1 / resolution)) * 0.2969069646728344;\n"
+    "  color += texture2D(image, uv + (off2 / resolution)) * 0.09447039785044732;\n"
+    "  color += texture2D(image, uv - (off2 / resolution)) * 0.09447039785044732;\n"
+    "  color += texture2D(image, uv + (off3 / resolution)) * 0.010381362401148057;\n"
+    "  color += texture2D(image, uv - (off3 / resolution)) * 0.010381362401148057;\n"
+    "  return color;\n"
+    "}\n"
+    "\n"
+    "vec4 blur9(sampler2D image, vec2 uv, vec2 resolution, vec2 direction) {\n"
+    "  vec4 color = vec4(0.0);\n"
+    "  vec2 off1 = vec2(1.3846153846) * direction;\n"
+    "  vec2 off2 = vec2(3.2307692308) * direction;\n"
+    "  color += texture2D(image, uv) * 0.2270270270;\n"
+    "  color += texture2D(image, uv + (off1 / resolution)) * 0.3162162162;\n"
+    "  color += texture2D(image, uv - (off1 / resolution)) * 0.3162162162;\n"
+    "  color += texture2D(image, uv + (off2 / resolution)) * 0.0702702703;\n"
+    "  color += texture2D(image, uv - (off2 / resolution)) * 0.0702702703;\n"
+    "  return color;\n"
+    "}\n"
+    "\n"
     "void main(void) {\n"
-    "    color = texture(frame, texcoord);\n"
+    "    vec2 uv = vec2(gl_FragCoord.xy / iResolution.xy);\n"
+    "    color = blur13(frame, uv, iResolution.xy, direction);\n"
     "    //color = vec4(0.5, 0.5, 0.5, 1.0);\n"
     "}\n";
 
@@ -230,21 +261,24 @@ int main(int argc, char *argv[])
     // FRAMEBUFFER SECTION END //////////////////////////////
 
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-    GLint angle_location = glGetUniformLocation(scene_program, "angle");
+
+    GLint scene_angle_location = glGetUniformLocation(scene_program, "angle");
     float angle = 0.0f;
 
     while (!glfwWindowShouldClose(window)) {
         // First pass
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        glLineWidth(5.0f);
         glBindFramebuffer(GL_FRAMEBUFFER, pp_framebuffer);
         glUseProgram(scene_program);
         glClear(GL_COLOR_BUFFER_BIT);
         angle = fmodf(angle + 0.01f, 2.0f * M_PI);
-        glUniform1f(angle_location, angle);
+        glUniform1f(scene_angle_location, angle);
         glDrawArrays(GL_TRIANGLES, position_index, sizeof(cube) / sizeof(cube[0]));
 
         // Second pass
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glUseProgram(pp_program);
         glClear(GL_COLOR_BUFFER_BIT);
