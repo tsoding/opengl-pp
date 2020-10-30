@@ -7,11 +7,44 @@
 #define SCREEN_WIDTH 800
 #define SCREEN_HEIGHT 800
 
-float quad[4][2] = {
-    {-0.5f, -0.5f},
-    {-0.5f,  0.5f},
-    { 0.5f,  0.5f},
-    { 0.5f, -0.5f},
+// Stolen from http://www.opengl-tutorial.org/beginners-tutorials/tutorial-4-a-colored-cube/#draw-a-cube
+static const GLfloat cube[][3] = {
+    {-1.0f,-1.0f,-1.0f},
+    {-1.0f,-1.0f, 1.0f},
+    {-1.0f, 1.0f, 1.0f},
+    {1.0f, 1.0f,-1.0f},
+    {-1.0f,-1.0f,-1.0f},
+    {-1.0f, 1.0f,-1.0f},
+    {1.0f,-1.0f, 1.0f},
+    {-1.0f,-1.0f,-1.0f},
+    {1.0f,-1.0f,-1.0f},
+    {1.0f, 1.0f,-1.0f},
+    {1.0f,-1.0f,-1.0f},
+    {-1.0f,-1.0f,-1.0f},
+    {-1.0f,-1.0f,-1.0f},
+    {-1.0f, 1.0f, 1.0f},
+    {-1.0f, 1.0f,-1.0f},
+    {1.0f,-1.0f, 1.0f},
+    {-1.0f,-1.0f, 1.0f},
+    {-1.0f,-1.0f,-1.0f},
+    {-1.0f, 1.0f, 1.0f},
+    {-1.0f,-1.0f, 1.0f},
+    {1.0f,-1.0f, 1.0f},
+    {1.0f, 1.0f, 1.0f},
+    {1.0f,-1.0f,-1.0f},
+    {1.0f, 1.0f,-1.0f},
+    {1.0f,-1.0f,-1.0f},
+    {1.0f, 1.0f, 1.0f},
+    {1.0f,-1.0f, 1.0f},
+    {1.0f, 1.0f, 1.0f},
+    {1.0f, 1.0f,-1.0f},
+    {-1.0f, 1.0f,-1.0f},
+    {1.0f, 1.0f, 1.0f},
+    {-1.0f, 1.0f,-1.0f},
+    {-1.0f, 1.0f, 1.0f},
+    {1.0f, 1.0f, 1.0f},
+    {-1.0f, 1.0f, 1.0f},
+    {1.0f,-1.0f, 1.0f}
 };
 
 const char * const vertex_shader_source =
@@ -122,12 +155,12 @@ int main(int argc, char *argv[])
     GLuint vertex_buffer;
     glGenBuffers(1, &vertex_buffer);
     glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(quad), quad, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(cube), cube, GL_STATIC_DRAW);
 
     const GLuint position_index = 0;
     glEnableVertexAttribArray(position_index);
     glVertexAttribPointer(position_index,
-                          sizeof(quad[0]) / sizeof(quad[0][0]),
+                          sizeof(cube[0]) / sizeof(cube[0][0]),
                           GL_FLOAT,
                           GL_FALSE,
                           0,
@@ -137,7 +170,7 @@ int main(int argc, char *argv[])
     while (!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glDrawArrays(GL_QUADS, position_index, 4);
+        glDrawArrays(GL_TRIANGLES, position_index, sizeof(cube) / sizeof(cube[0]));
 
         glfwSwapBuffers(window);
         glfwPollEvents();
