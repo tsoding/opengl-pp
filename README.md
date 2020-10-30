@@ -1,17 +1,13 @@
 # OpenGL Post Processing
 
+![](./demo.png)
+
 ## Quick
 
 ```console
 $ make
 $ ./pp
 ```
-
-## Plan
-
-- [x] Render some 3D scene (rotating cube)
-- [x] Post-processing pipeline
-- [ ] Simple post-processing effect (blur)
 
 ## References
 
