@@ -9,6 +9,14 @@ $ make
 $ ./pp
 ```
 
+## MSVC build
+
+```cmd
+> setup_glfw.bat
+> build_msvc.bat
+> pp
+```
+
 ## References
 
 - http://www.opengl-tutorial.org/beginners-tutorials/tutorial-4-a-colored-cube/#draw-a-cube
