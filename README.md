@@ -2,14 +2,16 @@
 
 ![](./demo.png)
 
-## Quick
+## Quick Start
+
+### Linux
 
 ```console
 $ make
 $ ./pp
 ```
 
-## MSVC
+### MSVC
 
 ```cmd
 > setup_glfw.bat
