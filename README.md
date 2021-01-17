@@ -9,7 +9,7 @@ $ make
 $ ./pp
 ```
 
-## MSVC build
+## MSVC
 
 ```cmd
 > setup_glfw.bat
