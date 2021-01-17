@@ -4,6 +4,11 @@
 
 ## Quick Start
 
+### Dependencies
+
+- [glfw](https://www.glfw.org/)
+- [glew](http://glew.sourceforge.net/)
+
 ### Linux
 
 ```console

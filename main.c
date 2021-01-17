@@ -2,10 +2,9 @@
 #include <stdlib.h>
 #include <math.h>
 
-#ifdef _WIN32
 #define GLEW_STATIC
 #include <GL/glew.h>
-#endif // _WIN32
+
 #define GL_GLEXT_PROTOTYPES
 #include <GLFW/glfw3.h>
 
@@ -194,8 +193,6 @@ GLuint link_program(GLuint vertex_shader, GLuint fragment_shader)
     return program;
 }
 
-
-
 int main(void)
 {
     if (!glfwInit()) {
@@ -214,11 +211,10 @@ int main(void)
 
     glfwMakeContextCurrent(window);
 
-#ifdef _WIN32
     if (GLEW_OK != glewInit()) {
         fprintf(stderr, "Could not initialize GLEW!\n");
+        exit(1);
     }
-#endif // _WIN32
 
     GLuint scene_vertex_shader = compile_shader(scene_vertex_shader_source, GL_VERTEX_SHADER);
     GLuint scene_fragment_shader = compile_shader(scene_fragment_shader_source, GL_FRAGMENT_SHADER);
