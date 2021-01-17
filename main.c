@@ -196,7 +196,7 @@ GLuint link_program(GLuint vertex_shader, GLuint fragment_shader)
 
 
 
-int main(int argc, char *argv[])
+int main(void)
 {
     if (!glfwInit()) {
         fprintf(stderr, "Could not initialize GLFW!\n");
@@ -283,7 +283,7 @@ int main(int argc, char *argv[])
         glBindFramebuffer(GL_FRAMEBUFFER, pp_framebuffer);
         glUseProgram(scene_program);
         glClear(GL_COLOR_BUFFER_BIT);
-        angle = fmodf(angle + 0.01f, 2.0f * M_PI);
+        angle = fmodf(angle + 0.01f, 2.0f * (float) M_PI);
         glUniform1f(scene_angle_location, angle);
         glDrawArrays(GL_TRIANGLES, position_index, sizeof(cube) / sizeof(cube[0]));
 
