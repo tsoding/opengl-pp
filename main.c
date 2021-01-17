@@ -2,6 +2,9 @@
 #include <stdlib.h>
 #include <math.h>
 
+#define GLEW_STATIC
+#include <GL/glew.h>
+
 #define GL_GLEXT_PROTOTYPES
 #include <GLFW/glfw3.h>
 
@@ -190,9 +193,7 @@ GLuint link_program(GLuint vertex_shader, GLuint fragment_shader)
     return program;
 }
 
-
-
-int main(int argc, char *argv[])
+int main(void)
 {
     if (!glfwInit()) {
         fprintf(stderr, "Could not initialize GLFW!\n");
@@ -209,6 +210,11 @@ int main(int argc, char *argv[])
     }
 
     glfwMakeContextCurrent(window);
+
+    if (GLEW_OK != glewInit()) {
+        fprintf(stderr, "Could not initialize GLEW!\n");
+        exit(1);
+    }
 
     GLuint scene_vertex_shader = compile_shader(scene_vertex_shader_source, GL_VERTEX_SHADER);
     GLuint scene_fragment_shader = compile_shader(scene_fragment_shader_source, GL_FRAGMENT_SHADER);
@@ -273,7 +279,7 @@ int main(int argc, char *argv[])
         glBindFramebuffer(GL_FRAMEBUFFER, pp_framebuffer);
         glUseProgram(scene_program);
         glClear(GL_COLOR_BUFFER_BIT);
-        angle = fmodf(angle + 0.01f, 2.0f * M_PI);
+        angle = fmodf(angle + 0.01f, 2.0f * (float) M_PI);
         glUniform1f(scene_angle_location, angle);
         glDrawArrays(GL_TRIANGLES, position_index, sizeof(cube) / sizeof(cube[0]));
 

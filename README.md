@@ -2,11 +2,26 @@
 
 ![](./demo.png)
 
-## Quick
+## Quick Start
+
+### Dependencies
+
+- [glfw](https://www.glfw.org/)
+- [glew](http://glew.sourceforge.net/)
+
+### Linux
 
 ```console
 $ make
 $ ./pp
+```
+
+### MSVC
+
+```cmd
+> setup_glfw.bat
+> build_msvc.bat
+> pp
 ```
 
 ## References
